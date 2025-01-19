@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+
+# Deploymentは、指定された数のPodを管理・維持するためのKubernetesリソースです。
+# 主にアプリケーションのバージョン管理やスケーリング、更新管理を行います。
+# Podの作成と管理: 指定した数のPodを常に維持し、必要に応じて自動的にスケーリングします。
+# ローリングアップデート: アプリケーションの新しいバージョンに更新する際、ダウンタイムなしで新しいPodを展開し、古いPodを削除します。
+# リソースの復旧: Podが障害などで停止した場合、自動的に再起動してサービスの継続性を確保します。
+# 自動スケーリング: Podの数を手動で変更したり、オートスケーリングポリシーを使って負荷に応じて動的に増減できます。
+
+kind: Deployment
+metadata:
+  name: php-app
+  labels:
+    app: php-app
+spec:
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: php-app
+  template:
+    metadata:
+      labels:
+        app: php-app
+    spec:
+      containers:
+        - name: php-container
+          image: php:8.1-apache # Docker Hubの公式イメージ
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: php-content
+              mountPath: /var/www/html
+      volumes:
+        - name: php-content
+          hostPath:
+            path: ./
+            type: Directory
+---
+# Serviceは、Kubernetes内のPod群に対して安定したアクセス手段を提供します。
+# Serviceは、複数のPodを1つの論理的なエンドポイントとしてまとめ、クライアントがPodにアクセスできるようにします。
+
+# 主な機能:
+# ロードバランシング: 複数のPodがある場合、ServiceはリクエストをそれらのPodに均等に分散します（ラウンドロビン方式など）。
+# サービス発見: 他のPodやサービスが、動的に変更されるPodのIPアドレスに依存せずに、Service名でアクセスできます。
+# ポートマッピング: Serviceを介してPodに外部からアクセスするためのポートをマッピングできます。
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-app-service
+  labels:
+    app: php-app
+spec:
+  selector:
+    app: php-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: NodePort
+---
+# Ingressは、外部からKubernetesクラスタ内のサービスへのHTTPおよびHTTPSトラフィックをルーティングするためのリソースです。
+# リバースプロキシとして機能し、複数のServiceを1つのエントリーポイント（ドメイン名やパス）で公開します。
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: php-app-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: php-app-service
+                port:
+                  number: 80

@@ -10,7 +10,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Symfony アプリケーションのソースをコピー
 WORKDIR /var/www
-COPY ./web /var/www
+COPY . /var/www
 
 # 権限の設定
 RUN composer install --no-dev --optimize-autoloader

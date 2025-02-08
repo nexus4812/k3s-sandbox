@@ -24,7 +24,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./
-          file: ./php/Dockerfile
+          file: ./containers/php/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/my-app:latest
 
@@ -32,6 +32,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./
-          file: ./apache/Dockerfile
+          file: ./containers/apache/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/my-app:latest

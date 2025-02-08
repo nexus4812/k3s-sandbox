@@ -10,11 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ソースコードをチェックアウト
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Dockerコンテナをビルド
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -22,10 +20,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push Docker Image
+      - name: Build and Push PHP Docker Image
         uses: docker/build-push-action@v4
         with:
-          context: ./web
+          context: ./
           file: ./php/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/my-symfony-app:latest
+          tags: ghcr.io/${{ github.repository_owner }}/my-app:latest
+
+      - name: Build and Push PHP Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./
+          file: ./apache/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/my-app:latest

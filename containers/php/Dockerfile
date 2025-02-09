@@ -31,10 +31,15 @@ COPY ./web /var/www
 COPY ./web/.env.dev /var/www/.env
 RUN composer dump-autoload && composer auto-scripts
 
+RUN getent group www-data || groupadd -g 33 www-data && \
+    getent passwd www-data || useradd -u 33 -g www-data -m www-data
 RUN chown -R www-data:www-data /var/www
 USER www-data
 
 CMD ["php-fpm"]
 
-# sample
+# Build sample
 # docker build -t php-fpm -f containers/php/Dockerfile .
+
+# Run sample
+# docker run -it --rm php-fpm bash

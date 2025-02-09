@@ -31,6 +31,8 @@ COPY ./web /var/www
 COPY ./web/.env.dev /var/www/.env
 RUN composer dump-autoload && composer auto-scripts
 
+RUN useradd -m -u 1000 -g www-data -s /bin/bash www-data
 RUN chown -R www-data:www-data /var/www
+USER www-data
 
 CMD ["php-fpm"]

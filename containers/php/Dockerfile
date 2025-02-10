@@ -6,10 +6,10 @@ COPY ./web/composer.json ./web/composer.lock /var/www/
 RUN composer install --no-dev --no-scripts --no-cache --working-dir=/var/www/ --prefer-dist
 
 FROM php:8.2-fpm-alpine
-RUN apk add --no-cache --virtual .build-deps \
-    oniguruma-dev \
-    && docker-php-ext-install pdo pdo_mysql mbstring  && \
-    apk del --purge .build-deps
+#RUN apk add --no-cache --virtual .build-deps \
+#    oniguruma-dev \
+#    && docker-php-ext-install pdo pdo_mysql mbstring  && \
+#    apk del --purge .build-deps
 
 # FMPのConfigをコピー
 COPY ./containers/php/www.conf /usr/local/etc/php-fpm.d/www.conf

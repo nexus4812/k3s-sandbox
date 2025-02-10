@@ -21,7 +21,7 @@ COPY --chown=www-data:www-data ./web/.env.dev /var/www/.env
 COPY --chown=www-data:www-data --from=composer-build /var/www /var/www
 # COPY --from=composer:2 /usr/bin/composer /usr/bin/composer # for debug
 
-CMD ["php-fpm"]
+CMD ["php-fpm", "-F" , "-R"]
 
 # Build sample
 # docker build -t php-fpm -f containers/php/Dockerfile .

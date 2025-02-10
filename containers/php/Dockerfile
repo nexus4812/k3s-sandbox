@@ -1,20 +1,15 @@
-FROM php:8.2-fpm
+FROM composer:2 AS composer-build
+WORKDIR /var/www
 
-# 必要な拡張モジュールをインストール
-# 必要なPHP拡張をインストール
-RUN apt-get update && apt-get install -y \
-    unzip \
-    git \
-    libicu-dev \
-    libpq-dev \
-    libonig-dev \
-    libzip-dev \
-    && apt-get install -y \
-    icu-devtools \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip intl
+# composer.json と composer.lock をコピーして、先行して install
+COPY ./web/composer.json ./web/composer.lock /var/www/
+RUN composer install --no-dev --no-scripts --no-cache --working-dir=/var/www/ --prefer-dist
 
-# Composer のインストール
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+FROM php:8.2-fpm-alpine
+RUN apk add --no-cache --virtual .build-deps \
+    oniguruma-dev \
+    && docker-php-ext-install pdo pdo_mysql mbstring  && \
+    apk del --purge .build-deps
 
 # FMPのConfigをコピー
 COPY ./containers/php/www.conf /usr/local/etc/php-fpm.d/www.conf
@@ -22,18 +17,9 @@ COPY ./containers/php/www.conf /usr/local/etc/php-fpm.d/www.conf
 # パッケージのインストール
 # 先行してvendor配下のダウンロードを行うことで、vendorのキャッシュとしている
 WORKDIR /var/www
-COPY ./web/composer.json /var/www
-COPY ./web/composer.lock /var/www
-RUN composer install --no-dev --no-scripts
-
-# ソースコード自体をコピーしてdump-autoload等の実行
-COPY ./web /var/www
-COPY ./web/.env.dev /var/www/.env
-RUN composer dump-autoload && composer auto-scripts
-
-RUN getent group www-data || groupadd -g 33 www-data && \
-    getent passwd www-data || useradd -u 33 -g www-data -m www-data
-RUN chown -R www-data:www-data /var/www
+COPY --chown=www-data:www-data ./web/.env.dev /var/www/.env
+COPY --chown=www-data:www-data --from=composer-build /var/www /var/www
+# COPY --from=composer:2 /usr/bin/composer /usr/bin/composer # for debug
 
 CMD ["php-fpm"]
 
@@ -41,4 +27,4 @@ CMD ["php-fpm"]
 # docker build -t php-fpm -f containers/php/Dockerfile .
 
 # Run sample
-# docker run -it --rm php-fpm bash
+# docker run -it --rm php-fpm ash

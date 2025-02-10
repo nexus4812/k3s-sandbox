@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-fpm-deployment
+spec:
+  replicas: {{ .Values.containers.phpFpm.replicas }}
+  selector:
+    matchLabels:
+      app: php-fpm
+  template:
+    metadata:
+      labels:
+        app: php-fpm
+    spec:
+      containers:
+        - name: php-fpm
+          image: "{{ .Values.containers.phpFpm.repository }}:{{ .Values.containers.phpFpm.tag }}"
+          ports:
+            - containerPort: 9000

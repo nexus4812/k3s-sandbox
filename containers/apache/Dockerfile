@@ -3,7 +3,7 @@ COPY containers/apache/httpd.conf /usr/local/apache2/conf/httpd.conf
 RUN mkdir -p /var/www/public
 # COPY web/public /var/www/public # if web app has html, css files
 
-CMD ["apache2ctl", "-D", "FOREGROUND"]
+CMD ["apachectl", "-D", "FOREGROUND"]
 
 # Build sample
 # docker build -t apache -f containers/apache/Dockerfile .
